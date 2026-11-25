@@ -14,7 +14,7 @@ export async function getCpuOptionsForCategory(categoryId: string) {
   const cpus = await prisma.cpuOption.findMany({
     where: { active: true },
     orderBy: [{ displayOrder: "asc" }],
-    select: { id: true, name: true, priceCents: true },
+    select: { id: true, name: true, priceCents: true, inStock: true },
   });
   const overrides = await prisma.cpuCategoryPrice.findMany({ where: { categoryId } });
   const map = new Map(overrides.map((o) => [o.cpuOptionId, o.priceCents]));

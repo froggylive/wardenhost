@@ -161,7 +161,7 @@ export async function importCatalog(prisma: PrismaClient) {
         fullDescription: `${item.description}\n\nHardware: ECC memory where supported · Enterprise NVMe SSD · Up to 2 Gbps network · Unmetered bandwidth.\nAvailable locations: ${LOCATIONS}`,
         orderUrl: `/order/${slug}`,
         active: true,
-        inStock: false,
+        inStock: true,
         featured: false,
         displayOrder: i + 1,
       };

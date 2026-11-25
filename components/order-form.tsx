@@ -8,7 +8,7 @@ import { formatMoney } from "@/lib/utils";
 import { createOrderAction } from "@/lib/actions/orders";
 
 type Period = { id: string; code: string; label: string; months: number; multiplier: number };
-type CpuOption = { id: string; name: string; priceCents: number };
+type CpuOption = { id: string; name: string; priceCents: number; inStock: boolean };
 
 export function OrderForm({
   planId,
@@ -33,7 +33,7 @@ export function OrderForm({
 }) {
   const router = useRouter();
   const [periodId, setPeriodId] = useState(periods[0]?.id || "");
-  const [cpuOptionId, setCpuOptionId] = useState(cpuOptions[0]?.id || "");
+  const [cpuOptionId, setCpuOptionId] = useState(cpuOptions.find((c) => c.inStock)?.id || "");
   const [code, setCode] = useState("");
   const [applied, setApplied] = useState<{ discountCents: number; code: string } | null>(null);
   const [couponError, setCouponError] = useState("");
@@ -118,8 +118,8 @@ export function OrderForm({
               onChange={(e) => { setCpuOptionId(e.target.value); setApplied(null); }}
             >
               {cpuOptions.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}{c.priceCents > 0 ? ` — +${formatMoney(c.priceCents, currency, symbol)}` : " — Free"}
+                <option key={c.id} value={c.id} disabled={!c.inStock}>
+                  {c.name}{c.priceCents > 0 ? ` — +${formatMoney(c.priceCents, currency, symbol)}` : " — Free"}{!c.inStock ? " (Out of stock)" : ""}
                 </option>
               ))}
             </select>

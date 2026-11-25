@@ -16,6 +16,7 @@ export async function saveCpuOptionAction(formData: FormData): Promise<{ error?:
     name,
     priceCents: Math.round(price * 100),
     active: formData.get("active") === "on",
+    inStock: formData.get("inStock") === "on",
     displayOrder: Number(formData.get("displayOrder") || 0),
   };
 

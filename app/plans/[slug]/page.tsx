@@ -95,7 +95,9 @@ export default async function PlanCategoryPage({ params }: { params: { slug: str
                   <p className="mt-2 text-sm font-semibold text-white">
                     {cpu.priceCents > 0 ? `+${formatMoney(cpu.priceCents, "INR", symbol)}` : "Free"}
                   </p>
-                  <p className="mt-1 text-[10px] text-neutral-600">Select at checkout</p>
+                  <p className={`mt-1 text-[10px] ${cpu.inStock ? "text-neutral-600" : "text-rose-400"}`}>
+                    {cpu.inStock ? "Select at checkout" : "Out of stock"}
+                  </p>
                 </div>
               ))}
             </div>

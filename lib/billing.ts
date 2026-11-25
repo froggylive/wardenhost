@@ -75,9 +75,9 @@ export async function createOrder(input: {
   if (!period || !period.active) throw new Error("Billing period is not available");
 
   const cpu = input.cpuOptionId
-    ? await prisma.cpuOption.findFirst({ where: { id: input.cpuOptionId, active: true } })
+    ? await prisma.cpuOption.findFirst({ where: { id: input.cpuOptionId, active: true, inStock: true } })
     : null;
-  if (input.cpuOptionId && !cpu) throw new Error("Selected CPU option is not available");
+  if (input.cpuOptionId && !cpu) throw new Error("Selected CPU option is out of stock");
 
   const cpuCents = cpu ? await getCpuPriceForCategory(cpu.id, plan.categoryId) : 0;
   const subtotal = Math.round(plan.priceCents * period.months * period.multiplier) + cpuCents;

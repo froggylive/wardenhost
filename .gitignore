@@ -13,3 +13,5 @@ prisma/dev.db-journal
 uploads/*
 !uploads/.gitkeep
 license-panel
+froggylive-site
+*.tsbuildinfo

@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   const period = await prisma.billingPeriod.findUnique({ where: { id: String(body.billingPeriodId || "") } });
   if (!plan || !period) return NextResponse.json({ error: "Invalid selection" }, { status: 400 });
   const cpu = body.cpuOptionId
-    ? await prisma.cpuOption.findFirst({ where: { id: String(body.cpuOptionId), active: true } })
+    ? await prisma.cpuOption.findFirst({ where: { id: String(body.cpuOptionId), active: true, inStock: true } })
     : null;
   const cpuCents = cpu ? await getCpuPriceForCategory(cpu.id, plan.categoryId) : 0;
   const subtotal = Math.round(plan.priceCents * period.months * period.multiplier) + cpuCents;

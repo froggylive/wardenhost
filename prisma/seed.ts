@@ -179,9 +179,9 @@ async function main() {
   }
 
   for (const cpu of [
-    { name: "Intel Xeon 6788P", priceCents: 2000, active: true, displayOrder: 1 },
-    { name: "AMD EPYC 9965", priceCents: 0, active: true, displayOrder: 2 },
-    { name: "AMD Ryzen 7 7700X", priceCents: 0, active: true, displayOrder: 3 },
+    { name: "Intel Xeon 6788P", priceCents: 2000, active: true, inStock: true, displayOrder: 1 },
+    { name: "AMD EPYC 9965", priceCents: 0, active: true, inStock: false, displayOrder: 2 },
+    { name: "AMD Ryzen 7 7700X", priceCents: 0, active: true, inStock: false, displayOrder: 3 },
   ]) {
     await prisma.cpuOption.upsert({ where: { name: cpu.name }, update: cpu, create: cpu });
   }

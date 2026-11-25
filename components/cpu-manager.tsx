@@ -8,7 +8,7 @@ import { Modal, ConfirmDialog } from "@/components/modal";
 import { formatMoney } from "@/lib/utils";
 import { deleteCpuOptionAction, saveCpuCategoryPricesAction, saveCpuOptionAction, toggleCpuOptionAction } from "@/lib/actions/cpu";
 
-type Cpu = { id: string; name: string; priceCents: number; active: boolean; displayOrder: number; categoryPrices?: Array<{ categoryId: string; priceCents: number }> };
+type Cpu = { id: string; name: string; priceCents: number; active: boolean; inStock: boolean; displayOrder: number; categoryPrices?: Array<{ categoryId: string; priceCents: number }> };
 type Category = { id: string; name: string };
 
 export function CpuManager({ cpus, categories, symbol }: { cpus: Cpu[]; categories: Category[]; symbol: string }) {
@@ -67,7 +67,10 @@ export function CpuManager({ cpus, categories, symbol }: { cpus: Cpu[]; categori
             <div><label className="label">Price (₹)</label><input name="price" type="number" min="0" step="1" className="input" defaultValue={editing ? editing.priceCents / 100 : 0} required /></div>
             <div><label className="label">Display order</label><input name="displayOrder" type="number" min="0" className="input" defaultValue={editing?.displayOrder ?? 99} /></div>
           </div>
-          <label className="flex items-center gap-2 text-sm text-neutral-300"><input type="checkbox" name="active" className="accent-white" defaultChecked={editing?.active ?? true} /> Enabled (visible at checkout)</label>
+          <div className="flex flex-wrap gap-6">
+            <label className="flex items-center gap-2 text-sm text-neutral-300"><input type="checkbox" name="active" className="accent-white" defaultChecked={editing?.active ?? true} /> Enabled (visible)</label>
+            <label className="flex items-center gap-2 text-sm text-neutral-300"><input type="checkbox" name="inStock" className="accent-white" defaultChecked={editing?.inStock ?? true} /> In stock (selectable)</label>
+          </div>
           <div className="flex justify-end gap-2 border-t border-line pt-4">
             <button type="button" className="btn-secondary" onClick={() => setOpen(false)}>Cancel</button>
             <button className="btn-primary" disabled={pending}>{pending ? "Saving..." : "Save CPU"}</button>
@@ -97,7 +100,12 @@ export function CpuManager({ cpus, categories, symbol }: { cpus: Cpu[]; categori
             <tbody>
               {cpus.map((cpu) => (
                 <tr key={cpu.id}>
-                  <td className="sticky left-0 bg-ink-900 font-medium text-white">{cpu.name}</td>
+                  <td className="sticky left-0 bg-ink-900">
+                    <div className="flex flex-col items-start gap-1">
+                      <span className="font-medium text-white">{cpu.name}</span>
+                      <span className={cpu.inStock ? "badge-emerald" : "badge-rose"}>{cpu.inStock ? "In stock" : "Out of stock"}</span>
+                    </div>
+                  </td>
                   {categories.map((c) => {
                     const override = cpu.categoryPrices?.find((p) => p.categoryId === c.id);
                     return (
