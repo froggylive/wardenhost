@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 # WardenHost Management Suite — one-line installer
 # Usage:
-#   export GH_TOKEN="your_github_token"
-#   bash <(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" \
-#     https://raw.githubusercontent.com/froggylive/wardenhost/main/installer.sh)
+#   bash <(curl -fsSL https://raw.githubusercontent.com/froggylive/wardenhost/main/installer.sh)
 set -euo pipefail
 
 REPO="https://github.com/froggylive/wardenhost.git"
@@ -19,7 +17,7 @@ banner() {
 =================================================================
                  ⚡ WardenHost Management Suite
         Full Support: Debian 11/12/13 & Ubuntu 20/22/24
-              Private installer · FroggyLive
+              Installer by FroggyLive
 =================================================================
 EOF
 }
@@ -70,13 +68,8 @@ ensure_repo() {
     return
   fi
   root_check
-  local token="${GH_TOKEN:-}"
-  if [[ -z "$token" ]]; then
-    read -r -s -p "GitHub token with repo access: " token
-    echo
-  fi
-  echo "Cloning private repository..."
-  git clone "https://${token}@github.com/froggylive/wardenhost.git" "$INSTALL_DIR"
+  echo "Cloning WardenHost repository..."
+  git clone "$REPO" "$INSTALL_DIR"
   echo "Cloned to $INSTALL_DIR"
 }
 

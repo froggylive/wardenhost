@@ -15,12 +15,8 @@ Requirements: Node.js 20+ and npm.
 
 **One-command Linux installer (interactive menu):**
 
-Because the repository is private, authenticate the raw fetch with a GitHub token:
-
 ```bash
-export GH_TOKEN="YOUR_GITHUB_TOKEN"
-bash <(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" \
-  https://raw.githubusercontent.com/froggylive/wardenhost/main/installer.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/froggylive/wardenhost/main/installer.sh)
 ```
 
 The installer shows an ASCII-art menu with Install, Create/Reset Admin, Update,
