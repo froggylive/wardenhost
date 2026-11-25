@@ -24,6 +24,16 @@ function envLicenseValid(host: string) {
   return domainAllowed(domains, host);
 }
 
+let lastCleanup = 0;
+
+/** Removes licenses more than 3 days past expiry. */
+export async function cleanupExpiredLicenses() {
+  if (Date.now() - lastCleanup < 60 * 60 * 1000) return;
+  lastCleanup = Date.now();
+  const cutoff = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+  await prisma.license.deleteMany({ where: { expiresAt: { lt: cutoff } } });
+}
+
 /** Asks the separate license panel on port 3006 to validate a key. */
 export async function validateWithLicensePanel(key: string, host: string) {
   const url = process.env.LICENSE_PANEL_URL;
@@ -46,6 +56,7 @@ export async function validateWithLicensePanel(key: string, host: string) {
 
 /** Env license works immediately; otherwise an activated, unexpired DB license is required. */
 export async function isLicensedInstallation() {
+  await cleanupExpiredLicenses();
   const host = requestHost();
   if (envLicenseValid(host)) return true;
 
