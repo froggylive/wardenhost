@@ -1,0 +1,14 @@
+.*
+!.gitignore
+!.env.example
+
+node_modules
+.next
+dist
+build
+*.log
+*.pid
+prisma/dev.db
+prisma/dev.db-journal
+uploads/*
+!uploads/.gitkeep

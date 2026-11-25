@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /client/
+Disallow: /api/
+Disallow: /logout
+
+Disallow: /terms
+Disallow: /copyright
+Disallow: /privacy
