@@ -150,6 +150,8 @@ model PanelConfig {
   createPath  String   @default("/api/create")
   deletePath  String   @default("/api/delete")
   testPath    String   @default("/api/health")
+  authHeader  String   @default("Authorization")
+  authScheme  String   @default("Bearer")
   active      Boolean  @default(true)
   description String?
   displayOrder Int     @default(0)

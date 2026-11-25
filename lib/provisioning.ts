@@ -16,13 +16,14 @@ async function callPanel(panelCode: string, payload: PanelPayload, action: Panel
   }
   const path = action === "delete" ? panel.deletePath : action === "test" ? panel.testPath : panel.createPath;
   try {
+    const scheme = panel.authScheme?.trim();
+    const authValue = scheme ? `${scheme} ${panel.apiKey}` : panel.apiKey;
     const res = await fetch(panelEndpoint(panel.apiUrl, path), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
-        Authorization: `Bearer ${panel.apiKey}`,
-        "X-Api-Key": panel.apiKey,
+        [panel.authHeader || "Authorization"]: authValue,
       },
       body: JSON.stringify(payload),
       cache: "no-store",
