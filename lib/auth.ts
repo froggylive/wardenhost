@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { hashToken, randomToken } from "@/lib/crypto";
@@ -8,7 +8,8 @@ export const SESSION_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 export const SESSION_REMEMBER_MAX_AGE = 60 * 60 * 24 * 90; // 90 days
 
 function secureCookies() {
-  return (process.env.NEXT_PUBLIC_APP_URL || "").startsWith("https://");
+  const proto = headers().get("x-forwarded-proto") || "";
+  return proto === "https" || (process.env.NEXT_PUBLIC_APP_URL || "").startsWith("https://");
 }
 
 export type AuthUser = {

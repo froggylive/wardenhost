@@ -211,6 +211,19 @@ No image is loaded from a third-party URL at runtime; all are served from local 
 - Terms, copyright and credit are owner-locked in the UI and ignored by the settings action on the server.
 - Production builds ship minified client bundles; server source, credentials and database files are never sent to the browser.
 
+### 502 Bad Gateway behind Cloudflare
+The app listens on **3001** now. If your origin proxy still targets 3000, update it:
+
+```bash
+sudo cp deploy/nginx.conf /etc/nginx/sites-available/wardenhost
+sudo ln -sf /etc/nginx/sites-available/wardenhost /etc/nginx/sites-enabled/wardenhost
+sudo nginx -t && sudo systemctl reload nginx
+pm2 restart all
+```
+
+Also confirm `ALLOWED_DOMAINS` includes your hostname and that PM2 has the app running.
+A template is provided in `deploy/nginx.conf`.
+
 No website can be made impossible to copy — anything rendered in a browser can be saved. These measures establish ownership, block casual reinstalls and make unauthorised use detectable and enforceable.
 
 ---
