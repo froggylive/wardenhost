@@ -29,6 +29,7 @@ async function parse(formData: FormData) {
     name: String(formData.get("name") || ""),
     description: String(formData.get("description") || ""),
     icon: String(formData.get("icon") || "Server"),
+    panelCode: String(formData.get("panelCode") || "") || null,
     image,
     displayOrder: String(formData.get("displayOrder") || 0),
     active: formData.get("active") === "on",

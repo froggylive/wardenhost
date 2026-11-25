@@ -10,10 +10,11 @@ import { createCategoryAction, deleteCategoryAction, toggleCategoryAction, updat
 
 type Category = {
   id: string; name: string; slug: string; description: string; icon: string;
+  panelCode?: string | null;
   image: string | null; displayOrder: number; active: boolean; _count: { plans: number };
 };
 
-export function CategoryManager({ categories }: { categories: Category[] }) {
+export function CategoryManager({ categories, panels }: { categories: Category[]; panels: Array<{ code: string; name: string }> }) {
   const router = useRouter();
   const [editing, setEditing] = useState<Category | null>(null);
   const [open, setOpen] = useState(false);
@@ -56,6 +57,7 @@ export function CategoryManager({ categories }: { categories: Category[] }) {
             <div className="grid gap-4 sm:grid-cols-2">
               <div><label className="label" htmlFor="name">Category name</label><input id="name" name="name" className="input" defaultValue={editing?.name} placeholder="e.g. Dedicated LXC VDS" required /></div>
               <div><label className="label" htmlFor="icon">Icon</label><select id="icon" name="icon" className="input" defaultValue={editing?.icon || "Server"}>{ICON_NAMES.map((name) => <option key={name} value={name}>{name}</option>)}</select></div>
+              <div><label className="label" htmlFor="panelCode">Provisioning panel</label><select id="panelCode" name="panelCode" className="input" defaultValue={(editing as any)?.panelCode || ""}><option value="">None (no auto provisioning)</option>{panels.map((p) => <option key={p.code} value={p.code}>{p.name}</option>)}</select></div>
             </div>
             <div><label className="label" htmlFor="description">Description</label><textarea id="description" name="description" className="textarea" defaultValue={editing?.description} placeholder="Describe this hosting category..." required /></div>
             <div className="grid gap-4 sm:grid-cols-2">

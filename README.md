@@ -20,7 +20,8 @@ bash <(curl -fsSL https://raw.githubusercontent.com/froggylive/wardenhost/main/i
 ```
 
 The installer shows an ASCII-art menu with Install, Create/Reset Admin, Update,
-PM2 Service Management and Uninstall. It also accepts `GH_TOKEN` when cloning the repo.
+PM2 Service Management, **Auto-fix** (dependency/Prisma/build repair) and Uninstall.
+The main website auto-hosts on **http://localhost:3001**; set your domain during install.
 A legacy non-PM2 installer remains available as `install.sh`.
 
 The installer uses `whiptail` when available (otherwise plain prompts) and can install Node,
@@ -41,7 +42,7 @@ npm run db:setup      # creates the database and seeds demo data
 npm run dev
 ```
 
-Open <http://localhost:3000>.
+Open <http://localhost:3001>.
 
 Seeded accounts (change these in `.env` before seeding in any real deployment):
 
@@ -50,7 +51,7 @@ Seeded accounts (change these in `.env` before seeding in any real deployment):
 | Administrator | `admin@wardenhost.example` | `Admin@12345` |
 | Customer | `demo@example.com` | `Demo@12345` |
 
-Admin panel: <http://localhost:3000/admin> · Client area: <http://localhost:3000/client>
+Admin panel: <http://localhost:3001/admin> · Client area: <http://localhost:3001/client>
 
 Legal pages: `/terms`, `/copyright`, `/privacy`. The copyright notice, terms text, privacy policy and the "Made By FroggyLive" credit (with Discord link) are editable in **Admin → Website Content → Legal pages & credit**.
 
@@ -102,7 +103,8 @@ npm start
 - Razorpay: server-created order, client checkout, HMAC-SHA256 signature verification, signed webhook.
 - Stripe: server-created Checkout Session, server-side session retrieval verification, signed webhook.
 - FamPay UPI QR: when a FamGateway API key is configured, the server creates a real payment session at `POST https://famgateway.in/api/create-order`, shows the returned QR/checkout page, and verifies payment via signed webhook (`/api/webhooks/fampay`) or authoritative server status check (`/api/verify-order.php`). Amounts are matched before settlement. Without an API key, a locally generated UPI QR is used with admin verification.
-- Provisioning panel: set `PANEL_API_URL` and `PANEL_API_KEY` in Admin → Settings → Payment Gateway Credentials. After verified payment, service details are POSTed to your panel (VPS, Minecraft, etc.). Without configuration no fake provisioning is performed.
+- Provisioning panels: Admin → Provisioning Panels lets you add Minecraft, VPS, VDS or other panel connections (API URL + key). Map a panel to a category in Admin → Categories. After verified payment, a `create` request with service specs is POSTed to that panel; the returned server ID is stored. Without configuration no fake provisioning is performed.
+- Maintenance: expiring services get one email, then after 3 unpaid days the panel receives a `delete` request, the service is marked deleted and another email is sent. Runs automatically on site traffic, or call `POST /api/cron/maintenance` with `x-cron-secret: $CRON_SECRET` from a cron job.
 - Frontend success responses are never trusted. Settlement is idempotent: an invoice can only be paid once, duplicate transactions are prevented, and invoices/orders/services update only after verification.
 
 ---

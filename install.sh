@@ -116,7 +116,7 @@ cd /root
 nohup npm start > /var/log/wardenhost/website.log 2>&1 & echo $! > /var/run/wardenhost/website.pid
 cd /root/license-panel
 nohup npm start > /var/log/wardenhost/license-panel.log 2>&1 & echo $! > /var/run/wardenhost/license-panel.pid
-echo "Website: http://localhost:3000"
+echo "Website: http://localhost:3001"
 echo "License panel: http://localhost:3006"
 EOF
   cat > /usr/local/bin/wardenhost-stop <<'EOF'

@@ -70,6 +70,7 @@ model Category {
   description String
   icon        String   @default("Server")
   image       String?
+  panelCode   String?
   displayOrder Int     @default(0)
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -136,6 +137,21 @@ model CpuOption {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   categoryPrices CpuCategoryPrice[]
+
+  @@index([active, displayOrder])
+}
+
+model PanelConfig {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  apiUrl      String
+  apiKey      String
+  active      Boolean  @default(true)
+  description String?
+  displayOrder Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([active, displayOrder])
 }
@@ -209,10 +225,14 @@ model Service {
   ram         String
   cpu         String
   disk        String
-  status      String    @default("PENDING") // PENDING|ACTIVE|SUSPENDED|CANCELLED|EXPIRED
+  status      String    @default("PENDING") // PENDING|ACTIVE|SUSPENDED|CANCELLED|EXPIRED|DELETED
   startDate   DateTime  @default(now())
   expiresAt   DateTime?
   renewalDate DateTime?
+  panelCode   String?
+  externalId  String?
+  expiryNotifiedAt DateTime?
+  deletedAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

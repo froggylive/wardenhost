@@ -178,6 +178,14 @@ async function main() {
     await prisma.paymentMethod.upsert({ where: { code: method.code }, update: method, create: method });
   }
 
+  for (const panel of [
+    { code: "minecraft-panel", name: "Minecraft panel", description: "Creates Minecraft servers after payment", apiUrl: "", apiKey: "", active: true, displayOrder: 1 },
+    { code: "vps-panel", name: "VPS panel", description: "Creates VPS instances after payment", apiUrl: "", apiKey: "", active: true, displayOrder: 2 },
+    { code: "vds-panel", name: "VDS panel", description: "Creates dedicated VDS instances after payment", apiUrl: "", apiKey: "", active: true, displayOrder: 3 },
+  ]) {
+    await prisma.panelConfig.upsert({ where: { code: panel.code }, update: panel, create: panel });
+  }
+
   for (const cpu of [
     { name: "Intel Xeon 6788P", priceCents: 2000, active: true, inStock: true, displayOrder: 1 },
     { name: "AMD EPYC 9965", priceCents: 0, active: true, inStock: false, displayOrder: 2 },

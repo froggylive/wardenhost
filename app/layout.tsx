@@ -5,6 +5,7 @@ import { getAuthUser } from "@/lib/auth";
 import { Wrench, LockKeyhole } from "lucide-react";
 import { isLicensedInstallation } from "@/lib/license";
 import { LicenseActivateForm } from "@/components/license-activate-form";
+import { processExpiredServices } from "@/lib/service-maintenance";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  void processExpiredServices().catch(() => {});
   const licensed = await isLicensedInstallation();
   const [settings, user] = licensed
     ? await Promise.all([getSettings(), getAuthUser()])

@@ -53,7 +53,7 @@ function escapeHtml(value: string) {
 
 async function emailShell(title: string, message: string, link: string, cta: string) {
   const settings = await getSettings();
-  const base = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+  const base = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001").replace(/\/$/, "");
   const logo = String(settings.logo || "/images/warden-logo.webp");
   const banner = "/images/email-banner.webp";
   const company = String(settings.companyName || "WardenHost");
@@ -100,5 +100,17 @@ export async function verificationEmail(link: string) {
 export async function resetEmail(link: string) {
   const text = `Reset your password:\n\n${link}\n\nThis link expires in 60 minutes. If you did not request it, ignore this message.`;
   const html = await emailShell("Reset your password", "We received a request to reset your password. This link expires in 60 minutes.", link, "Reset password");
+  return { text, html };
+}
+
+export async function serviceExpiredEmail(serviceName: string, link: string) {
+  const text = `Your ${serviceName} service has expired. Renew within 3 days to keep it active.\n\n${link}`;
+  const html = await emailShell("Service expired", `Your ${serviceName} service has expired. Renew within 3 days or the instance will be deleted automatically.`, link, "Renew now");
+  return { text, html };
+}
+
+export async function serviceDeletedEmail(serviceName: string, link: string) {
+  const text = `Your unpaid ${serviceName} service was deleted after its 3-day grace period.\n\n${link}`;
+  const html = await emailShell("Service deleted", `Your ${serviceName} service was not renewed in time and its instance has been removed. You can place a new order from your client area.`, link, "View client area");
   return { text, html };
 }

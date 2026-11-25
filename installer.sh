@@ -43,18 +43,20 @@ menu() {
   [2] 👤 Create/Reset Admin (Set admin email & password)
   [3] 🔄 Update (Pull updates, rebuild & reload)
   [4] ⚙️  Service Management (PM2 restart, logs, boot startup)
-  [5] 🗑️  Uninstall (Safe uninstall wizard)
+  [5] 🤖  Auto-fix (diagnose & repair common install errors)
+  [6] 🗑️  Uninstall (Safe uninstall wizard)
   [0] 🚪 Exit
 
 =================================================================
 EOF
-  read -r -p "Enter choice [0-5]: " choice
+  read -r -p "Enter choice [0-6]: " choice
   case "$choice" in
     1) install_full ;;
     2) manage_admin ;;
     3) update_app ;;
     4) service_menu ;;
-    5) uninstall_wizard ;;
+    5) auto_fix ;;
+    6) uninstall_wizard ;;
     0|*) echo "Goodbye."; exit 0 ;;
   esac
   echo
@@ -97,7 +99,7 @@ configure_env() {
   read -r -p "License API token [warden-license-api-2026]: " api; api=${api:-warden-license-api-2026}
   cat > .env <<EOF
 DATABASE_URL="file:./dev.db"
-NEXT_PUBLIC_APP_URL="http://${domain}:3000"
+NEXT_PUBLIC_APP_URL="http://${domain}:3001"
 SESSION_SECRET="$(openssl rand -hex 32 2>/dev/null || echo change-me)"
 LICENSE_KEY="WARDENHOST-LICENSE-ACTIVE"
 ALLOWED_DOMAINS="${domain},localhost,127.0.0.1"
@@ -146,7 +148,7 @@ EOF
   pm2 delete all >/dev/null 2>&1 || true
   pm2 start ecosystem.config.js
   pm2 save
-  echo "PM2 services started. Website: :3000  License panel: :3006"
+  echo "PM2 services started. Website: :3001  License panel: :3006"
 }
 
 install_full() {
@@ -211,6 +213,33 @@ EOF
     4) pm2 stop all ;;
     5) return ;;
   esac
+}
+
+auto_fix() {
+  root_check
+  ensure_repo
+  cd "$INSTALL_DIR"
+  echo "🤖 Running diagnostics..."
+  ensure_node
+  has git || { apt-get update -qq && apt-get install -y -qq git >/dev/null; }
+
+  echo "- repairing dependencies..."
+  npm install --no-audit --no-fund >/dev/null 2>&1 || npm install --no-audit --no-fund --force
+  echo "- regenerating Prisma client & database..."
+  npx prisma generate >/dev/null 2>&1 || true
+  npx prisma db push --skip-generate >/dev/null 2>&1 || npx prisma db push
+  echo "- verifying build..."
+  if ! npm run build >/tmp/warden-autofix-build.log 2>&1; then
+    echo "Build failed. Clearing .next and retrying once..."
+    rm -rf .next
+    npm run build || { echo "Build still failing. Last lines:"; tail -30 /tmp/warden-autofix-build.log; return 1; }
+  fi
+  echo "- checking ports..."
+  for port in 3001 3006; do
+    if fuser -n tcp "$port" >/dev/null 2>&1; then echo "Port $port in use; restarting PM2 services"; pm2 restart all >/dev/null 2>&1 || true; break; fi
+  done
+  pm2 restart all >/dev/null 2>&1 || setup_pm2
+  echo "✅ Auto-fix complete. Website should be on :3001, license panel on :3006."
 }
 
 uninstall_wizard() {
