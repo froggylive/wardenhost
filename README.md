@@ -15,9 +15,17 @@ Requirements: Node.js 20+ and npm.
 
 **One-command Linux installer (interactive menu):**
 
+Because the repository is private, authenticate the raw fetch with a GitHub token:
+
 ```bash
-sudo bash install.sh
+export GH_TOKEN="YOUR_GITHUB_TOKEN"
+bash <(curl -fsSL -H "Authorization: Bearer $GH_TOKEN" \
+  https://raw.githubusercontent.com/froggylive/wardenhost/main/installer.sh)
 ```
+
+The installer shows an ASCII-art menu with Install, Create/Reset Admin, Update,
+PM2 Service Management and Uninstall. It also accepts `GH_TOKEN` when cloning the repo.
+A legacy non-PM2 installer remains available as `install.sh`.
 
 The installer uses `whiptail` when available (otherwise plain prompts) and can install Node,
 configure both `.env` files, install/build both apps, seed the database, start/stop services
