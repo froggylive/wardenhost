@@ -9,6 +9,7 @@ import { deletePanelAction, savePanelAction, testPanelAction, togglePanelAction 
 
 type Panel = {
   id: string; code: string; name: string; apiUrl: string; apiKey: string;
+  createPath: string; deletePath: string; testPath: string;
   active: boolean; description: string | null; displayOrder: number;
 };
 
@@ -75,8 +76,13 @@ export function PanelManager({ panels }: { panels: Panel[] }) {
             <div><label className="label">Panel name</label><input name="name" className="input" defaultValue={editing?.name} placeholder="e.g. Minecraft panel" required /></div>
             <div><label className="label">Code</label><input name="code" className="input" defaultValue={editing?.code} placeholder="minecraft-panel" required={!editing} /></div>
           </div>
-          <div><label className="label">API URL</label><input name="apiUrl" className="input" defaultValue={editing?.apiUrl} placeholder="https://panel.example.com/api/create" required /></div>
+          <div><label className="label">Base API URL</label><input name="apiUrl" className="input" defaultValue={editing?.apiUrl} placeholder="https://vds.example.com" required /></div>
           <div><label className="label">API key</label><input name="apiKey" type="password" className="input" autoComplete="off" placeholder={editing ? "Leave blank to keep current key" : "Server-side only"} /></div>
+          <div className="grid gap-4 sm:grid-cols-3 sm:col-span-2">
+            <div><label className="label">Create path</label><input name="createPath" className="input" defaultValue={editing?.createPath || "/api/create"} /></div>
+            <div><label className="label">Delete path</label><input name="deletePath" className="input" defaultValue={editing?.deletePath || "/api/delete"} /></div>
+            <div><label className="label">Test path</label><input name="testPath" className="input" defaultValue={editing?.testPath || "/api/health"} /></div>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div><label className="label">Description</label><input name="description" className="input" defaultValue={editing?.description || ""} /></div>
             <div><label className="label">Display order</label><input name="displayOrder" type="number" className="input" defaultValue={editing?.displayOrder ?? 10} /></div>

@@ -2,13 +2,21 @@ import { prisma } from "@/lib/prisma";
 
 type PanelPayload = Record<string, unknown>;
 
-async function callPanel(panelCode: string, payload: PanelPayload) {
+type PanelAction = "create" | "delete" | "test";
+
+function panelEndpoint(base: string, path: string) {
+  if (!path || path === "/") return base;
+  return `${base.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+}
+
+async function callPanel(panelCode: string, payload: PanelPayload, action: PanelAction = "create") {
   const panel = await prisma.panelConfig.findUnique({ where: { code: panelCode } });
   if (!panel || !panel.active || !panel.apiUrl || !panel.apiKey) {
     return { skipped: true as const, reason: "Panel not configured" };
   }
+  const path = action === "delete" ? panel.deletePath : action === "test" ? panel.testPath : panel.createPath;
   try {
-    const res = await fetch(panel.apiUrl, {
+    const res = await fetch(panelEndpoint(panel.apiUrl, path), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -79,13 +87,13 @@ export async function deprovisionService(serviceId: string) {
     service_id: service.id,
     external_id: service.externalId,
     email: service.userId,
-  });
+  }, "delete");
 }
 
 /** Test a panel connection from the admin panel. */
 export async function testPanel(code: string) {
   const panel = await prisma.panelConfig.findUnique({ where: { code } });
   if (!panel) return { ok: false, error: "Panel not found" };
-  const res = await callPanel(code, { action: "test", service_id: "connection-test" });
+  const res = await callPanel(code, { action: "test", service_id: "connection-test" }, "test");
   return res.skipped ? { ok: false, error: res.reason } : { ok: res.ok, status: res.status, data: res.data };
 }
