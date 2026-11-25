@@ -124,12 +124,6 @@ SEED_ADMIN_PASSWORD="Admin@12345"
 SEED_DEMO_EMAIL="demo@example.com"
 SEED_DEMO_PASSWORD="Demo@12345"
 EOF
-  cat > license-panel/.env <<EOF
-DATABASE_URL="file:../../prisma/dev.db"
-LICENSE_PANEL_PASSWORD="${panel}"
-LICENSE_API_TOKEN="${api}"
-NEXT_PUBLIC_APP_URL="http://localhost:3006"
-EOF
 }
 
 setup_pm2() {
@@ -145,13 +139,6 @@ module.exports = {
       args: "start",
       env: { PATH: "/opt/node/bin:/usr/local/bin:/usr/bin:/bin" }
     },
-    {
-      name: "wardenhost-license",
-      cwd: "$INSTALL_DIR/license-panel",
-      script: "npm",
-      args: "start",
-      env: { PATH: "/opt/node/bin:/usr/local/bin:/usr/bin:/bin" }
-    }
   ]
 };
 EOF
@@ -169,12 +156,10 @@ install_full() {
   configure_env
   echo "Installing dependencies..."
   (cd "$INSTALL_DIR" && npm install --no-audit --no-fund)
-  (cd "$INSTALL_DIR/license-panel" && npm install --no-audit --no-fund)
   echo "Preparing database..."
   (cd "$INSTALL_DIR" && npx prisma db push && npm run db:seed)
   echo "Building..."
   (cd "$INSTALL_DIR" && npm run build)
-  (cd "$INSTALL_DIR/license-panel" && npm run build)
   setup_pm2
   echo "✅ Installation complete."
 }
@@ -202,10 +187,8 @@ update_app() {
   cd "$INSTALL_DIR"
   git pull origin "$BRANCH"
   npm install --no-audit --no-fund
-  (cd license-panel && npm install --no-audit --no-fund)
   npx prisma generate
   npm run build
-  (cd license-panel && npm run build)
   pm2 restart all || setup_pm2
   echo "✅ Update complete."
 }
