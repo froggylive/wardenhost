@@ -18,6 +18,19 @@ const LOCKED_SETTING_KEYS = new Set([
   "privacyContent",
 ]);
 
+/** Checkbox-backed settings must be written even when unchecked (key absent). */
+const BOOLEAN_SETTING_KEYS = new Set([
+  "allowRegistration",
+  "requireEmailVerification",
+  "maintenanceMode",
+]);
+
+function parseBoolean(value: FormDataEntryValue | null) {
+  if (value === null) return false;
+  const str = String(value);
+  return str === "on" || str === "true" || str === "1";
+}
+
 export async function saveSettingValuesAction(formData: FormData): Promise<{ error?: string; ok?: boolean }> {
   const admin = await requireAdmin();
   const keys: string[] = [];
@@ -36,7 +49,8 @@ export async function saveSettingValuesAction(formData: FormData): Promise<{ err
     if (rawKey.startsWith("_")) continue;
     const str = String(value);
     let parsedValue: unknown = str;
-    if (str === "true") parsedValue = true;
+    if (BOOLEAN_SETTING_KEYS.has(rawKey)) parsedValue = parseBoolean(value);
+    else if (str === "true") parsedValue = true;
     else if (str === "false") parsedValue = false;
     else if (str.startsWith("[")) { try { parsedValue = JSON.parse(str); } catch { parsedValue = str; } }
     else if (/^-?\d+(\.\d+)?$/.test(str) && !str.startsWith("0") && str.length < 10) parsedValue = Number(str);
@@ -47,6 +61,18 @@ export async function saveSettingValuesAction(formData: FormData): Promise<{ err
     });
     keys.push(rawKey);
   }
+
+  // An unchecked HTML checkbox is not submitted at all — persist it as false.
+  for (const key of BOOLEAN_SETTING_KEYS) {
+    if (formData.has(key)) continue;
+    await prisma.websiteSetting.upsert({
+      where: { key },
+      update: { value: JSON.stringify(false) },
+      create: { key, value: JSON.stringify(false) },
+    });
+    keys.push(key);
+  }
+
   await audit(admin.id, "UPDATE", "WebsiteSettings", undefined, keys.join(", "));
   revalidatePath("/");
   revalidatePath("/admin/content");
