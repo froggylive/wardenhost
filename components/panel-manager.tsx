@@ -10,6 +10,7 @@ import { deletePanelAction, savePanelAction, testPanelAction, togglePanelAction 
 type Panel = {
   id: string; code: string; name: string; apiUrl: string; apiKey: string;
   createPath: string; deletePath: string; testPath: string; authHeader: string; authScheme: string;
+  adminUser?: string | null; adminPassword?: string | null;
   active: boolean; description: string | null; displayOrder: number;
 };
 
@@ -86,6 +87,10 @@ export function PanelManager({ panels }: { panels: Panel[] }) {
           <div className="grid gap-4 sm:grid-cols-2">
             <div><label className="label">Auth header name</label><input name="authHeader" className="input" defaultValue={editing?.authHeader || "Authorization"} placeholder="Authorization / X-Api-Key" /></div>
             <div><label className="label">Auth scheme (blank = raw key)</label><input name="authScheme" className="input" defaultValue={editing?.authScheme ?? "Bearer"} placeholder="Bearer / Token / blank" /></div>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div><label className="label">Admin username (fallback)</label><input name="adminUser" className="input" defaultValue={editing?.adminUser || ""} placeholder="admin" /></div>
+            <div><label className="label">Admin password (fallback)</label><input name="adminPassword" type="password" className="input" autoComplete="off" placeholder={editing?.adminPassword ? "Saved — leave blank to keep" : "Optional"} /></div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div><label className="label">Description</label><input name="description" className="input" defaultValue={editing?.description || ""} /></div>

@@ -152,6 +152,8 @@ model PanelConfig {
   testPath    String   @default("/api/health")
   authHeader  String   @default("Authorization")
   authScheme  String   @default("Bearer")
+  adminUser   String?
+  adminPassword String?
   active      Boolean  @default(true)
   description String?
   displayOrder Int     @default(0)

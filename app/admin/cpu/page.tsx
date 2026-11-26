@@ -16,7 +16,7 @@ export default async function AdminCpuPage() {
   ]);
   return (
     <>
-      <PageHeader title="CPU Options" description="Enable processor upgrades, set global prices and override them per hosting category." />
+      <PageHeader title="CPU Options" description="Enable CPUs, set prices, use the green box button to mark in/out of stock, and override prices per category." />
       <CpuManager cpus={cpus} categories={categories} symbol={settings.currencySymbol || "₹"} />
     </>
   );

@@ -67,6 +67,19 @@ export async function toggleCpuOptionAction(formData: FormData) {
   return { ok: true };
 }
 
+export async function toggleCpuStockAction(formData: FormData) {
+  const admin = await requireAdmin();
+  const id = String(formData.get("id") || "");
+  const cpu = await prisma.cpuOption.findUnique({ where: { id } });
+  if (!cpu) return { error: "CPU option not found" };
+  await prisma.cpuOption.update({ where: { id }, data: { inStock: !cpu.inStock } });
+  await audit(admin.id, "TOGGLE", "CpuOption", id, `In stock: ${!cpu.inStock}`);
+  revalidatePath("/admin/cpu");
+  revalidatePath("/plans");
+  revalidatePath("/order");
+  return { ok: true };
+}
+
 export async function deleteCpuOptionAction(formData: FormData) {
   const admin = await requireAdmin();
   const id = String(formData.get("id") || "");

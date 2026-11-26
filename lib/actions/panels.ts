@@ -28,6 +28,8 @@ export async function savePanelAction(formData: FormData): Promise<{ error?: str
     testPath: String(formData.get("testPath") || existing?.testPath || "/api/health").trim(),
     authHeader: String(formData.get("authHeader") || existing?.authHeader || "Authorization").trim(),
     authScheme: String(formData.get("authScheme") || existing?.authScheme || "Bearer").trim(),
+    adminUser: String(formData.get("adminUser") || existing?.adminUser || "").trim() || null,
+    adminPassword: String(formData.get("adminPassword") || existing?.adminPassword || "").trim() || null,
     active: formData.get("active") === "on",
     description: String(formData.get("description") || "").trim() || null,
     displayOrder: Number(formData.get("displayOrder") || 0),

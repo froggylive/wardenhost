@@ -2,11 +2,11 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, Power } from "lucide-react";
+import { Plus, Pencil, Trash2, Power, PackageCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Modal, ConfirmDialog } from "@/components/modal";
 import { formatMoney } from "@/lib/utils";
-import { deleteCpuOptionAction, saveCpuCategoryPricesAction, saveCpuOptionAction, toggleCpuOptionAction } from "@/lib/actions/cpu";
+import { deleteCpuOptionAction, saveCpuCategoryPricesAction, saveCpuOptionAction, toggleCpuOptionAction, toggleCpuStockAction } from "@/lib/actions/cpu";
 
 type Cpu = { id: string; name: string; priceCents: number; active: boolean; inStock: boolean; displayOrder: number; categoryPrices?: Array<{ categoryId: string; priceCents: number }> };
 type Category = { id: string; name: string };
@@ -48,6 +48,12 @@ export function CpuManager({ cpus, categories, symbol }: { cpus: Cpu[]; categori
                       <form action={(fd) => start(async () => { await toggleCpuOptionAction(fd); router.refresh(); })}>
                         <input type="hidden" name="id" value={cpu.id} />
                         <button className="btn-ghost px-2" title="Enable / disable"><Power size={15} /></button>
+                      </form>
+                      <form action={(fd) => start(async () => { await toggleCpuStockAction(fd); router.refresh(); })}>
+                        <input type="hidden" name="id" value={cpu.id} />
+                        <button className={cpu.inStock ? "btn-ghost px-2 text-emerald-400" : "btn-ghost px-2 text-amber-400"} title={cpu.inStock ? "Mark out of stock" : "Mark in stock"}>
+                          <PackageCheck size={15} />
+                        </button>
                       </form>
                       <button className="btn-ghost px-2" onClick={() => { setEditing(cpu); setOpen(true); }}><Pencil size={15} /></button>
                       <button className="btn-ghost px-2 text-rose-400" onClick={() => setDeleting(cpu)}><Trash2 size={15} /></button>
