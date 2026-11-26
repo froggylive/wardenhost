@@ -19,7 +19,8 @@ Requirements: Node.js 20+ and npm.
 bash <(curl -fsSL https://raw.githubusercontent.com/froggylive/wardenhost/main/installer.sh)
 ```
 
-The installer shows an ASCII-art menu with Install, Create/Reset Admin, Update,
+The installer shows an ASCII-art menu with Install, Create/Reset Admin, **Safe Update**
+(backup `.env` + database, fast-forward pull, schema sync without seed, rebuild, PM2 reload),
 PM2 Service Management, **Auto-fix** (dependency/Prisma/build repair) and Uninstall.
 The main website auto-hosts on **http://localhost:3001**; set your domain during install.
 A legacy non-PM2 installer remains available as `install.sh`.

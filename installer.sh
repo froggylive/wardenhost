@@ -41,7 +41,7 @@ menu() {
 
   [1] 🚀 Install (Full automated install for Debian/Ubuntu)
   [2] 👤 Create/Reset Admin (Set admin email & password)
-  [3] 🔄 Update (Pull updates, rebuild & reload)
+  [3] 🔄 Update (Safe pull, rebuild & reload — no data loss)
   [4] ⚙️  Service Management (PM2 restart, logs, boot startup)
   [5] 🤖  Auto-fix (diagnose & repair common install errors)
   [6] 🗑️  Uninstall (Safe uninstall wizard)
@@ -185,14 +185,49 @@ p.user.upsert({
 }
 
 update_app() {
+  root_check
   ensure_repo
   cd "$INSTALL_DIR"
-  git pull origin "$BRANCH"
+
+  local stamp backup code
+  stamp=$(date +%Y%m%d%H%M%S)
+  backup="/root/wardenhost-backups/$stamp"
+  mkdir -p "$backup"
+
+  echo "Backing up .env and database to $backup"
+  [[ -f .env ]] && cp .env "$backup/.env" || true
+  [[ -f prisma/dev.db ]] && cp prisma/dev.db "$backup/dev.db" || true
+  git status --porcelain > "$backup/git-status.txt" 2>/dev/null || true
+
+  echo "- pulling updates (fast-forward only)..."
+  if ! git fetch origin "$BRANCH" || ! git pull --ff-only origin "$BRANCH"; then
+    echo "❌ Pull failed. Your files and data were not changed. Backup: $backup"
+    return 1
+  fi
+
+  echo "- installing dependencies..."
   npm install --no-audit --no-fund
+
+  echo "- syncing database schema (no seed, no data loss)..."
   npx prisma generate
-  npm run build
-  pm2 restart all || setup_pm2
-  echo "✅ Update complete."
+  npx prisma db push --skip-generate
+
+  echo "- rebuilding..."
+  if ! npm run build; then
+    echo "❌ Build failed. Restoring .env and database from backup..."
+    [[ -f "$backup/.env" ]] && cp "$backup/.env" .env || true
+    [[ -f "$backup/dev.db" ]] && cp "$backup/dev.db" prisma/dev.db || true
+    return 1
+  fi
+
+  echo "- reloading services..."
+  pm2 reload all >/dev/null 2>&1 || pm2 restart all >/dev/null 2>&1 || setup_pm2
+  sleep 2
+
+  code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3001/ 2>/dev/null || true)
+  echo "✅ Update complete. Website HTTP $code"
+  echo "Settings, licenses, plans, customers and database were preserved. No seed was run."
+  echo "Backup available at: $backup"
 }
 
 service_menu() {
