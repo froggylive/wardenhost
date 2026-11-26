@@ -13,6 +13,8 @@
     "db:catalog": "tsx prisma/run-catalog.ts",
     "db:setup": "prisma db push && tsx prisma/seed.ts",
     "test:e2e": "node ui-test.mjs",
+    "secure:lock": "bash scripts/lock-source.sh",
+    "secure:unlock": "bash scripts/unlock-source.sh",
     "postinstall": "prisma generate"
   },
   "dependencies": {

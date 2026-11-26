@@ -1,3 +1,4 @@
+import { existsSync } from "fs";
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
 import { PageHeader } from "@/components/ui";
@@ -43,6 +44,7 @@ export default async function AdminSettingsPage() {
         methods={withConfigured}
         credentialStatus={credentialStatus}
         customGateways={customGateways}
+        sourceLocked={existsSync("/root/.warden_source_locked")}
         smtp={{ host: smtpHost, port: smtpPort, user: smtpUser, from: smtpFrom, passwordConfigured: credentialStatus.SMTP_PASSWORD }}
         env={{
           smtp: !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD),

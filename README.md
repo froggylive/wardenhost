@@ -228,6 +228,8 @@ pm2 restart all
 Also confirm `ALLOWED_DOMAINS` includes your hostname and that PM2 has the app running.
 A template is provided in `deploy/nginx.conf`.
 
+See `SECURITY.md` for source-lock commands (`npm run secure:lock` / `secure:unlock`) and the limits of filesystem protection.
+
 No website can be made impossible to copy — anything rendered in a browser can be saved. These measures establish ownership, block casual reinstalls and make unauthorised use detectable and enforceable.
 
 ---

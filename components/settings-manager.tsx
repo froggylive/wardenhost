@@ -292,12 +292,13 @@ function EmailSettings({ smtp }: { smtp: { host: string; port: string; user: str
   );
 }
 
-export function SettingsManager({ settings, methods, credentialStatus, env, customGateways, smtp }: {
+export function SettingsManager({ settings, methods, credentialStatus, env, customGateways, smtp, sourceLocked }: {
   settings: Record<string, any>;
   methods: Method[];
   credentialStatus: Record<string, boolean>;
   customGateways: CustomGateway[];
   smtp: { host: string; port: string; user: string; from: string; passwordConfigured: boolean };
+  sourceLocked: boolean;
   env: { smtp: boolean };
 }) {
   const router = useRouter();
@@ -378,6 +379,9 @@ export function SettingsManager({ settings, methods, credentialStatus, env, cust
         <div>
           <h2 className="text-sm font-medium text-white">Security notes</h2>
           <p className="mt-1.5 text-xs leading-relaxed text-neutral-500">Gateway secrets are stored in a dedicated server-side table and are never included in public settings or browser bundles. Payment success is only trusted after server-side signature verification or administrator verification. Customers can never change their role or payment status.</p>
+          <p className="mt-3 text-xs">
+            Source files: <span className={sourceLocked ? "badge-emerald" : "badge-amber"}>{sourceLocked ? "Locked — admin panel only" : "Unlocked — maintenance mode"}</span>
+          </p>
         </div>
       </div>
     </div>
