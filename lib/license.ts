@@ -47,7 +47,10 @@ export async function validateWithLicensePanel(key: string, host: string) {
       signal: AbortSignal.timeout(4000),
     });
     if (!res.ok) {
-      return { valid: false, reason: `License panel validation failed (${res.status})` };
+      // 5xx means the panel is temporarily unavailable; do not treat that as
+      // an invalid license. Only authoritative 4xx responses reject a key.
+      if (res.status >= 500) return null;
+      return { valid: false, reason: `License panel rejected the key (${res.status})` };
     }
     return (await res.json()) as { valid: boolean; reason?: string; expiresAt?: string | null; allowedDomains?: string };
   } catch {
@@ -56,28 +59,13 @@ export async function validateWithLicensePanel(key: string, host: string) {
 }
 
 /**
- * A single server-wide activation unlocks the site for every visitor.
- * Visitors do not need their own license key or cookie.
+ * A single server-wide activation unlocks the site permanently for every
+ * visitor. It does not expire and is not re-checked on later requests.
  */
 export async function isLicensedInstallation() {
   await cleanupExpiredLicenses();
-  const host = requestHost();
   const activation = await prisma.installationLicense.findUnique({ where: { id: "main" } });
-  if (!activation || !activation.active) return false;
-  if (activation.expiresAt && activation.expiresAt.getTime() <= Date.now()) return false;
-  if (activation.domain && !domainAllowed(activation.domain, host)) return false;
-
-  // Keep the installation in sync with the central license panel.
-  const remote = await validateWithLicensePanel(activation.licenseKey, host);
-  if (remote && remote.valid === false) {
-    await prisma.installationLicense.update({
-      where: { id: "main" },
-      data: { active: false },
-    }).catch(() => {});
-    return false;
-  }
-
-  return true;
+  return !!activation?.active;
 }
 
 function licenseAdminToken() {

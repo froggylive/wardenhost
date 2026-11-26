@@ -62,12 +62,11 @@ export async function activateLicenseAction(formData: FormData): Promise<{ error
     });
   } else {
     if (!license.active) return { error: "Invalid or disabled license key" };
-    if (license.expiresAt && license.expiresAt.getTime() <= Date.now()) {
-      return { error: "This license has expired. Contact the provider for a new key." };
-    }
     if (!domainAllowed(license.allowedDomains, host)) {
       return { error: `This license is not valid for ${host}` };
     }
+    // A temporary 502/unreachable panel is ignored; an authoritative rejection
+    // from the panel still blocks activation.
     if (remote && remote.valid === false) {
       return { error: remote.reason || "License validation failed" };
     }

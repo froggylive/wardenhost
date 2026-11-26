@@ -41,7 +41,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 This copy of WardenHost is not licensed for this domain. Enter a valid license key issued by the administrator to activate it.
               </p>
               <LicenseActivateForm />
-              <p className="mt-4 text-[11px] text-neutral-600">One valid activation unlocks the site for every visitor.</p>
+              <p className="mt-4 text-[11px] text-neutral-600">One valid activation unlocks the site permanently for every visitor — no re-entry needed after expiry.</p>
               <p className="mt-3 text-xs text-neutral-600">Copyright FroggyLive. Unauthorised installation is prohibited.</p>
             </div>
           </main>
