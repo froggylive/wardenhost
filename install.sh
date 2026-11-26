@@ -46,22 +46,20 @@ prompt() {
 
 configure_env() {
   echo "Configuring environment files..."
-  local domain admin_email panel_pass lic_pass lic_key api_token
+  local domain admin_email api_token
   domain=$(prompt "Primary domain (no https)" "localhost")
   admin_email=$(prompt "Admin email" "admin@wardenhost.example")
-  panel_pass=$(prompt "License panel password" "FroggyLive")
-  lic_pass=$(prompt "License API token" "warden-license-api-2026")
-  lic_key=$(prompt "License key" "WARDENHOST-LICENSE-ACTIVE")
+  # License validation uses the central panel only. No local license panel is installed.
+  api_token="${LICENSE_API_TOKEN:-warden-license-api-2026}"
 
   cat > "$ROOT_DIR/.env" <<EOF
 DATABASE_URL="file:./dev.db"
-NEXT_PUBLIC_APP_URL="http://${domain}:3000"
+NEXT_PUBLIC_APP_URL="http://${domain}:3001"
 SESSION_SECRET="$(openssl rand -hex 32 2>/dev/null || echo change-me)"
-LICENSE_KEY="${lic_key}"
+LICENSE_KEY=""
 ALLOWED_DOMAINS="${domain},localhost,127.0.0.1"
-LICENSE_PANEL_PASSWORD="${panel_pass}"
-LICENSE_PANEL_URL="http://localhost:3006"
-LICENSE_API_TOKEN="${lic_pass}"
+LICENSE_PANEL_URL="https://licensekey.itsfroggy.com"
+LICENSE_API_TOKEN="${api_token}"
 RAZORPAY_KEY_ID=""
 RAZORPAY_KEY_SECRET=""
 RAZORPAY_WEBHOOK_SECRET=""
@@ -83,13 +81,7 @@ SEED_DEMO_EMAIL="demo@example.com"
 SEED_DEMO_PASSWORD="Demo@12345"
 EOF
 
-  cat > "$LP_DIR/.env" <<EOF
-DATABASE_URL="file:../../prisma/dev.db"
-LICENSE_PANEL_PASSWORD="${panel_pass}"
-LICENSE_API_TOKEN="${lic_pass}"
-NEXT_PUBLIC_APP_URL="http://localhost:3006"
-EOF
-  echo "Environment files written."
+  echo "Environment file written. Licenses are managed at https://licensekey.itsfroggy.com/"
 }
 
 install_app() {
@@ -114,10 +106,8 @@ source /etc/profile.d/wardenhost-node.sh 2>/dev/null || true
 mkdir -p /var/log/wardenhost /var/run/wardenhost
 cd /root
 nohup npm start > /var/log/wardenhost/website.log 2>&1 & echo $! > /var/run/wardenhost/website.pid
-cd /root/license-panel
-nohup npm start > /var/log/wardenhost/license-panel.log 2>&1 & echo $! > /var/run/wardenhost/license-panel.pid
 echo "Website: http://localhost:3001"
-echo "License panel: http://localhost:3006"
+echo "Licenses: https://licensekey.itsfroggy.com/"
 EOF
   cat > /usr/local/bin/wardenhost-stop <<'EOF'
 #!/usr/bin/env bash
@@ -174,11 +164,11 @@ main_menu() {
       choice=$(whiptail --title "WardenHost Installer" --menu "Choose an option" 18 70 8 \
         "1" "Install / update (deps, DB, build, commands)" \
         "2" "Configure .env files" \
-        "3" "Start services (ports 3000 & 3006)" \
+        "3" "Start website (port 3001)" \
         "4" "Stop services" \
         "5" "Enable systemd auto-start" \
         "6" "View website log" \
-        "7" "View license-panel log" \
+        "7" "View website log" \
         "8" "Exit" 3>&1 1>&2 2>&3) || exit 0
     else
       echo "==== WardenHost Installer ===="
@@ -188,7 +178,7 @@ main_menu() {
       echo "4) Stop services"
       echo "5) Enable systemd auto-start"
       echo "6) View website log"
-      echo "7) View license-panel log"
+      echo "7) View website log"
       echo "8) Exit"
       read -r -p "Choice: " choice
     fi
@@ -199,7 +189,7 @@ main_menu() {
       4) stop_services ;;
       5) install_systemd ;;
       6) tail -n 40 "$LOG_DIR/website.log" 2>/dev/null || echo "No log yet." ;;
-      7) tail -n 40 "$LOG_DIR/license-panel.log" 2>/dev/null || echo "No log yet." ;;
+      7) tail -n 40 "$LOG_DIR/website.log" 2>/dev/null || echo "No log yet." ;;
       8|*) exit 0 ;;
     esac
     has whiptail || read -r -p "Press Enter to continue..." _

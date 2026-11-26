@@ -39,8 +39,11 @@ export async function activateLicenseAction(formData: FormData): Promise<{ error
   // If this website does not hold the license locally, ask the remote panel
   // and create a local shadow record so the session can be validated later.
   if (!license) {
-    if (!remote || !remote.valid) {
-      return { error: remote?.reason || "Invalid license key" };
+    if (!remote) {
+      return { error: "Cannot reach the license panel. Check LICENSE_PANEL_URL and LICENSE_API_TOKEN on this server." };
+    }
+    if (!remote.valid) {
+      return { error: remote.reason || "Invalid license key" };
     }
     const domains = remote.allowedDomains || host;
     if (!domainAllowed(domains, host)) {

@@ -92,19 +92,18 @@ ensure_node() {
 
 configure_env() {
   cd "$INSTALL_DIR"
-  local domain admin panel api
+  local domain admin api
   read -r -p "Primary domain [localhost]: " domain; domain=${domain:-localhost}
   read -r -p "Admin email [admin@wardenhost.example]: " admin; admin=${admin:-admin@wardenhost.example}
-  read -r -p "License panel password [FroggyLive]: " panel; panel=${panel:-FroggyLive}
-  read -r -p "License API token [warden-license-api-2026]: " api; api=${api:-warden-license-api-2026}
+  # License validation always uses the central panel. No local license panel is installed.
+  api="${LICENSE_API_TOKEN:-warden-license-api-2026}"
   cat > .env <<EOF
 DATABASE_URL="file:./dev.db"
 NEXT_PUBLIC_APP_URL="http://${domain}:3001"
 SESSION_SECRET="$(openssl rand -hex 32 2>/dev/null || echo change-me)"
-LICENSE_KEY="WARDENHOST-LICENSE-ACTIVE"
+LICENSE_KEY=""
 ALLOWED_DOMAINS="${domain},localhost,127.0.0.1"
-LICENSE_PANEL_PASSWORD="${panel}"
-LICENSE_PANEL_URL="http://localhost:3006"
+LICENSE_PANEL_URL="https://licensekey.itsfroggy.com"
 LICENSE_API_TOKEN="${api}"
 RAZORPAY_KEY_ID=""
 RAZORPAY_KEY_SECRET=""
@@ -148,7 +147,8 @@ EOF
   pm2 delete all >/dev/null 2>&1 || true
   pm2 start ecosystem.config.js
   pm2 save
-  echo "PM2 services started. Website: :3001  License panel: :3006"
+  echo "PM2 service started. Website: :3001"
+  echo "Licenses are managed centrally at https://licensekey.itsfroggy.com/"
 }
 
 install_full() {
