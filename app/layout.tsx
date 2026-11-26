@@ -38,7 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <div className="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-xl border border-line bg-ink-900 text-neutral-300"><LockKeyhole size={20} /></div>
               <h1 className="text-2xl font-semibold tracking-tight text-white">Installation not activated</h1>
               <p className="mt-3 text-sm leading-relaxed text-neutral-500">
-                This copy of WardenHost is not licensed for this domain. Set LICENSE_KEY and ALLOWED_DOMAINS in the server environment to activate it.
+                This copy of WardenHost is not licensed for this domain. Enter a valid license key issued by the administrator to activate it.
               </p>
               <LicenseActivateForm />
               <p className="mt-6 text-xs text-neutral-600">Copyright FroggyLive. Unauthorised installation is prohibited.</p>

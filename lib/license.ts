@@ -1,6 +1,5 @@
 import { cookies, headers } from "next/headers";
 import { createHash } from "crypto";
-import { existsSync } from "fs";
 import { prisma } from "@/lib/prisma";
 
 export const LICENSE_COOKIE = "warden_license";
@@ -21,13 +20,8 @@ export function domainAllowed(domains: string, host: string) {
 
 export const LICENSE_REVOKE_FILE = process.env.LICENSE_REVOKE_FILE || "/root/.warden_license_revoked";
 
-function envLicenseValid(host: string) {
-  // A revocation written by the license panel overrides the env master key.
-  if (existsSync(LICENSE_REVOKE_FILE)) return false;
-  if (!process.env.LICENSE_KEY?.trim()) return false;
-  const domains = process.env.ALLOWED_DOMAINS || "localhost,127.0.0.1";
-  return domainAllowed(domains, host);
-}
+// Environment master keys are intentionally NOT accepted as a license.
+// Every installation must have an active database license and a valid session.
 
 let lastCleanup = 0;
 
@@ -52,8 +46,10 @@ export async function validateWithLicensePanel(key: string, host: string) {
       cache: "no-store",
       signal: AbortSignal.timeout(4000),
     });
-    if (!res.ok) return null;
-    return (await res.json()) as { valid: boolean; reason?: string; expiresAt?: string | null };
+    if (!res.ok) {
+      return { valid: false, reason: `License panel validation failed (${res.status})` };
+    }
+    return (await res.json()) as { valid: boolean; reason?: string; expiresAt?: string | null; allowedDomains?: string };
   } catch {
     return null;
   }
@@ -63,8 +59,6 @@ export async function validateWithLicensePanel(key: string, host: string) {
 export async function isLicensedInstallation() {
   await cleanupExpiredLicenses();
   const host = requestHost();
-  if (envLicenseValid(host)) return true;
-
   const licenseId = cookies().get(LICENSE_COOKIE)?.value;
   if (!licenseId) return false;
   const license = await prisma.license.findUnique({ where: { id: licenseId } });

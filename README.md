@@ -202,7 +202,7 @@ No image is loaded from a third-party URL at runtime; all are served from local 
 
 ## 9. Installation protection
 
-- `.env` contains `LICENSE_KEY` and `ALLOWED_DOMAINS`. The site renders only when the license key is present and the request host is in the allowed list — a copied folder without the private `.env` will show an activation notice instead of the site.
+- License enforcement is database-backed. `LICENSE_KEY` in `.env` is no longer accepted as a bypass — an installation must have an active license record and a valid session cookie. Deleting a license immediately locks the site on the next request.
 - The **License Panel is owner-only** and lives in its own **private** repository: `https://github.com/froggylive/wardenhost-license-panel`. It is **not** included in the public website installer or this repository. See that repo's README for the authenticated install command. It runs on port 3006 and is not accessible from the website or admin panel.
 - The activation screen includes a **License key** form. Entering a valid, active key whose allowed domains include the current host unlocks that installation. Seeded owner key: `WARDEN-FROG-2026-LIVE` for localhost and `wardenhost.net` (no expiry).
 - Deleting a license in the license panel writes a revocation marker that disables the env master key immediately, so the website locks on the next request. Use **Restore master license** in the panel to clear that marker.

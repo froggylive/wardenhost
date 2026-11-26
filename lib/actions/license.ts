@@ -30,31 +30,57 @@ export async function licenseLogoutAction() {
 export async function activateLicenseAction(formData: FormData): Promise<{ error?: string }> {
   const key = String(formData.get("key") || "").trim().toUpperCase();
   if (!key) return { error: "Enter a license key" };
-  const license = await prisma.license.findUnique({ where: { key } });
-  if (!license || !license.active) return { error: "Invalid or disabled license key" };
   const host = requestHost();
-  if (license.expiresAt && license.expiresAt.getTime() <= Date.now()) {
-    return { error: "This license has expired. Contact the provider for a new key." };
-  }
-  if (!domainAllowed(license.allowedDomains, host)) {
-    return { error: `This license is not valid for ${host}` };
-  }
   const { validateWithLicensePanel } = await import("@/lib/license");
+
+  let license = await prisma.license.findUnique({ where: { key } });
   const remote = await validateWithLicensePanel(key, host);
-  if (remote && remote.valid === false) {
-    return { error: remote.reason || "License validation failed" };
+
+  // If this website does not hold the license locally, ask the remote panel
+  // and create a local shadow record so the session can be validated later.
+  if (!license) {
+    if (!remote || !remote.valid) {
+      return { error: remote?.reason || "Invalid license key" };
+    }
+    const domains = remote.allowedDomains || host;
+    if (!domainAllowed(domains, host)) {
+      return { error: `This license is not valid for ${host}` };
+    }
+    license = await prisma.license.create({
+      data: {
+        key,
+        label: "Remote license",
+        allowedDomains: domains,
+        active: true,
+        expiresAt: remote.expiresAt ? new Date(remote.expiresAt) : null,
+        activatedAt: new Date(),
+        lastDomain: host,
+      },
+    });
+  } else {
+    if (!license.active) return { error: "Invalid or disabled license key" };
+    if (license.expiresAt && license.expiresAt.getTime() <= Date.now()) {
+      return { error: "This license has expired. Contact the provider for a new key." };
+    }
+    if (!domainAllowed(license.allowedDomains, host)) {
+      return { error: `This license is not valid for ${host}` };
+    }
+    if (remote && remote.valid === false) {
+      return { error: remote.reason || "License validation failed" };
+    }
+    await prisma.license.update({
+      where: { id: license.id },
+      data: { activatedAt: new Date(), lastDomain: host },
+    });
   }
-  await prisma.license.update({
-    where: { id: license.id },
-    data: { activatedAt: new Date(), lastDomain: host },
-  });
+
   const cookieStore = await import("next/headers").then((m) => m.cookies());
   cookieStore.set(LICENSE_COOKIE, license.id, {
     httpOnly: true,
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 24 * 365,
-    secure: (process.env.NEXT_PUBLIC_APP_URL || "").startsWith("https://"),
+    secure: process.env.NEXT_PUBLIC_APP_URL?.startsWith("https://"),
   });
   redirect("/");
 }
