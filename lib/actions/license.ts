@@ -77,13 +77,26 @@ export async function activateLicenseAction(formData: FormData): Promise<{ error
     });
   }
 
-  const cookieStore = await import("next/headers").then((m) => m.cookies());
-  cookieStore.set(LICENSE_COOKIE, license.id, {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 365,
-    secure: process.env.NEXT_PUBLIC_APP_URL?.startsWith("https://"),
+  // One activation unlocks the whole installation for every visitor.
+  await prisma.installationLicense.upsert({
+    where: { id: "main" },
+    update: {
+      licenseKey: key,
+      licenseId: license.id,
+      domain: host,
+      active: true,
+      activatedAt: new Date(),
+      expiresAt: license.expiresAt,
+    },
+    create: {
+      id: "main",
+      licenseKey: key,
+      licenseId: license.id,
+      domain: host,
+      active: true,
+      activatedAt: new Date(),
+      expiresAt: license.expiresAt,
+    },
   });
   redirect("/");
 }

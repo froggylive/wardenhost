@@ -55,19 +55,27 @@ export async function validateWithLicensePanel(key: string, host: string) {
   }
 }
 
-/** Env license works immediately; otherwise an activated, unexpired DB license is required. */
+/**
+ * A single server-wide activation unlocks the site for every visitor.
+ * Visitors do not need their own license key or cookie.
+ */
 export async function isLicensedInstallation() {
   await cleanupExpiredLicenses();
   const host = requestHost();
-  const licenseId = cookies().get(LICENSE_COOKIE)?.value;
-  if (!licenseId) return false;
-  const license = await prisma.license.findUnique({ where: { id: licenseId } });
-  if (!license || !license.active || !domainAllowed(license.allowedDomains, host)) return false;
-  if (license.expiresAt && license.expiresAt.getTime() <= Date.now()) return false;
+  const activation = await prisma.installationLicense.findUnique({ where: { id: "main" } });
+  if (!activation || !activation.active) return false;
+  if (activation.expiresAt && activation.expiresAt.getTime() <= Date.now()) return false;
+  if (activation.domain && !domainAllowed(activation.domain, host)) return false;
 
-  // Cross-check with the separate license panel when it is configured.
-  const remote = await validateWithLicensePanel(license.key, host);
-  if (remote && remote.valid === false) return false;
+  // Keep the installation in sync with the central license panel.
+  const remote = await validateWithLicensePanel(activation.licenseKey, host);
+  if (remote && remote.valid === false) {
+    await prisma.installationLicense.update({
+      where: { id: "main" },
+      data: { active: false },
+    }).catch(() => {});
+    return false;
+  }
 
   return true;
 }

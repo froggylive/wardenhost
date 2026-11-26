@@ -327,6 +327,17 @@ model GatewayCredential {
   updatedAt DateTime @updatedAt
 }
 
+model InstallationLicense {
+  id          String    @id @default("main")
+  licenseKey  String
+  licenseId   String?
+  domain      String?
+  active      Boolean   @default(true)
+  activatedAt DateTime  @default(now())
+  expiresAt   DateTime?
+  updatedAt   DateTime  @updatedAt
+}
+
 model License {
   id             String    @id @default(cuid())
   key            String    @unique
