@@ -1,5 +1,6 @@
 import { cookies, headers } from "next/headers";
 import { createHash } from "crypto";
+import { existsSync } from "fs";
 import { prisma } from "@/lib/prisma";
 
 export const LICENSE_COOKIE = "warden_license";
@@ -18,7 +19,11 @@ export function domainAllowed(domains: string, host: string) {
     .some((d) => d === host || (d.startsWith("*.") && host.endsWith(d.slice(1))));
 }
 
+export const LICENSE_REVOKE_FILE = process.env.LICENSE_REVOKE_FILE || "/root/.warden_license_revoked";
+
 function envLicenseValid(host: string) {
+  // A revocation written by the license panel overrides the env master key.
+  if (existsSync(LICENSE_REVOKE_FILE)) return false;
   if (!process.env.LICENSE_KEY?.trim()) return false;
   const domains = process.env.ALLOWED_DOMAINS || "localhost,127.0.0.1";
   return domainAllowed(domains, host);
